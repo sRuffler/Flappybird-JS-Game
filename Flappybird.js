@@ -49,8 +49,8 @@ function entitiy(x,y,width,height,color){
 function startGame(){
 	gameManager.startGame();
 	player = new entitiy(10,10,20,20,'white');
-	columns.push(new entitiy(500,0,20,500,'red'));
-	columns.push(new entitiy(1000,0,20,500,'red'));
+	columns.push(new entitiy(500,0,20,200,'red'));
+	columns.push(new entitiy(500,300,20,200,'red'));
 
 	for(var i = 0; i < columns.length;i++){
 
@@ -70,7 +70,7 @@ function update(){
 		columns[i].update();
 
 		if (columns[i].x < -20)
-			columns[i].x = 980;
+			columns[i].x = 530;
 	}
 }
 
