@@ -91,6 +91,11 @@ function entitiy(x,y,width,height,color){
 			gameManager.scoreFlag = true;
 			gameManager.score++;
 		}
+
+		if (this.y < 0 || this.y > gameManager.height)
+		{
+			gameManager.stopGame();
+		}
 	}
 	this.draw = function(){
 		gameManager.ctx.fillStyle = this.color;
