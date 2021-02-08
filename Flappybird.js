@@ -34,8 +34,12 @@ var gameManager = {
 	drawFinalScore:function(){
 		this.clear();
 		this.ctx.font = "100px Arial";
-		this.ctx.fillText('', 410, 50);
-		this.ctx.fillText(this.score, 230, 250);
+		if (this.score < 10)
+			this.ctx.fillText(this.score, 230, 270);
+		else if (this.score > 9 && this.score < 100)
+			this.ctx.fillText(this.score, 210, 270);
+		else
+			this.ctx.fillText(this.score, 190, 270);
 	}
 }
 
@@ -105,7 +109,7 @@ function Player(x,y,width,height,color){
 
 function startGame(){
 	gameManager.startGame();
-	player = new Player(10,10,20,20,'white');
+	player = new Player(30,240,20,20,'white');
 	columns.push(new Column(500,0,20,200, -5));
 	columns.push(new Column(500,300,20,250,-5));
 }
