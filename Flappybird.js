@@ -39,7 +39,7 @@ var gameManager = {
 	}
 }
 
-function column(x,y,width,height, speedX){
+function Column(x,y,width,height, speedX){
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -64,7 +64,7 @@ function column(x,y,width,height, speedX){
 	}
 }
 
-function entitiy(x,y,width,height,color){
+function Player(x,y,width,height,color){
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -105,15 +105,18 @@ function entitiy(x,y,width,height,color){
 
 function startGame(){
 	gameManager.startGame();
-	player = new entitiy(10,10,20,20,'white');
-	columns.push(new column(500,0,20,200, -5));
-	columns.push(new column(500,300,20,250,-5));
+	player = new Player(10,10,20,20,'white');
+	columns.push(new Column(500,0,20,200, -5));
+	columns.push(new Column(500,300,20,250,-5));
 }
 
 function update(){
 	gameManager.clear();
 	player.draw();
 	player.update();
+
+	if (gameManager.stopped)
+		return;
 
 	var gapPos = Math.random() * 300 + 100;
 	var col1Height = gapPos - 50;
@@ -131,7 +134,10 @@ function update(){
 	for(var i = 0; i < columns.length;i++){
 
 		columns[i].draw();
-		columns[i].update(colHeight[i]);	
+		columns[i].update(colHeight[i]);
+
+		if (gameManager.stopped)
+		return;	
 
 		if (columns[i].x < -20)
 		{
@@ -147,7 +153,7 @@ document.addEventListener('keydown', event => {
   if (event.repeat) 
   	return;
 
-  if (event.code === 'Space') {
+  if (event.code === 'Space' && !gameManager.stopped) {
     accelerate(-0.3);
   }
 });
