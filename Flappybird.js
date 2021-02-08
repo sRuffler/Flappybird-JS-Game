@@ -34,15 +34,18 @@ class Player extends Component {
         this.y += this.speedY + this.gravitySpeed;
         this.x += this.speedX;
 
-        if (this.y < 0 || this.y > gameManager.height) {
+        if (this.y < 0 || this.y > gameManager.height - this.height) {
             gameManager.stopGame();
         }
+    }
+    accelerate(value) {
+        this.gravity = value;
     }
     #setGravitySpeed() {
         this.gravitySpeed += this.gravity;
 
         if (this.gravity < 0)
-            accelerate(0.15);
+            this.accelerate(0.15);
 
         if (this.gravitySpeed >= 5)
             this.gravitySpeed = 5;
@@ -58,6 +61,9 @@ class Column extends Component {
         this.speedX = speedX;
     }
     update() {
+        if (gameManager.stopped)
+            return
+
         this.x += this.speedX;
 
         if (this.hasCollidedWithRect(player))
@@ -71,6 +77,8 @@ class Column extends Component {
     }
 
 }
+
+//-------------------------------------------------------------------------
 
 var player;
 var columns = [];
@@ -131,63 +139,55 @@ function startGame() {
 function update() {
     gameManager.clear();
 
+    // Draw Components and Score
+    player.draw();
+    columns.forEach(x => x.draw());
+    gameManager.drawScore();
+
+    // Update Component Positions and Score
     player.update();
-
-    gameManager.updateScore(player, columns[0]);
-
     if (gameManager.stopped)
         return;
 
-    var gapPos = Math.random() * 300 + 100;
-    var col1Height = gapPos - 50;
-    var col2Height = 500;
+    columns.forEach(x => x.update());
+    if (gameManager.stopped)
+        return;
 
-    var colY = [];
-    var colHeight = [];
+    gameManager.updateScore(player, columns[0]);  
 
-    colHeight.push(col1Height);
-    colHeight.push(col2Height);
+    // Respawn columns when they are off screen
+    if (columns.some(x => x.x <= -20)) {
 
-    colY.push(0);
-    colY.push(gapPos + 50);
+        // Works out a column gap at a new/random position  
+        var gapHeight = 100;
+        var gapPos = Math.random() * 300 + 100;
+        var col1Height = gapPos - (gapHeight / 2);
+        var col2Height = 500;
 
-    for (var i = 0; i < columns.length; i++) {
-
-        columns[i].draw();
-        columns[i].update();
-
-        if (gameManager.stopped)
-            return;
-
-        if (columns[i].x < -20) {
-            columns[i].respawn(colHeight[i], colY[i]);
-        }
+        columns[0].respawn(col1Height, 0);
+        columns[1].respawn(col2Height, gapPos + (gapHeight / 2));
     }
-
-    player.draw();
-    gameManager.drawScore();
 }
 
 document.addEventListener('keydown', event => {
     event.preventDefault();
     if (event.repeat) {
-        accelerate(0.15);
+        player.accelerate(0.15);
         return;
     }
 
     if (event.code === 'Space' && !gameManager.stopped) {
-        accelerate(-5);
+        player.accelerate(-5);
     }
 });
+
 document.addEventListener('keyup', event => {
     if (event.code === 'Space') {
         if (gameManager.stopped)
             startGame();
         else
-            accelerate(0.15);
+            player.accelerate(0.15);
     }
 });
 
-function accelerate(n) {
-    player.gravity = n;
-}
+
