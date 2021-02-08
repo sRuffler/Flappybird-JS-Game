@@ -34,8 +34,12 @@ var gameManager = {
 	drawFinalScore:function(){
 		this.clear();
 		this.ctx.font = "100px Arial";
-		this.ctx.fillText('', 410, 50);
-		this.ctx.fillText(this.score, 230, 250);
+		if (this.score < 10)
+			this.ctx.fillText(this.score, 230, 270);
+		else if (this.score > 9 && this.score < 100)
+			this.ctx.fillText(this.score, 210, 270);
+		else
+			this.ctx.fillText(this.score, 190, 270);
 	}
 }
 
