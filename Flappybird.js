@@ -105,7 +105,7 @@ function Player(x,y,width,height,color){
 
 function startGame(){
 	gameManager.startGame();
-	player = new Player(10,10,20,20,'white');
+	player = new Player(30,240,20,20,'white');
 	columns.push(new Column(500,0,20,200, -5));
 	columns.push(new Column(500,300,20,250,-5));
 }
