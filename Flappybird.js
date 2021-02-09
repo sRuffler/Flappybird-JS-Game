@@ -128,17 +128,20 @@ class GameManager {
         player = null;
         this.drawFinalScore();
         this.stopped = true;
+        this.clear();
     }
     clear() {
         this.ctx.clearRect(0, 0, this.width, this.height);
     }
     drawScore() {
         this.ctx.font = "30px Arial";
+        this.ctx.fillStyle = 'red';
         this.ctx.fillText(this.score, 430, 50);
     }
     drawFinalScore() {
-        this.clear();
+        this.drawBackground();
         this.ctx.font = "100px Arial";
+        this.ctx.fillStyle = 'red';
         if (this.score < 10)
             this.ctx.fillText(this.score, 230, 270);
         else if (this.score > 9 && this.score < 100)
@@ -189,21 +192,26 @@ function update() {
 
     // Update Component Positions and Score
 
-    player.update();
-    if (gameManager.stopped)
-        return;
-
-    columns.forEach(x => x.update());
-    if (gameManager.stopped)
-        return;
-
     gameManager.updateScore(player, columns[0]);
     gameManager.updateBackground();
+
+    player.update();
+    if (gameManager.stopped) {
+        gameManager.drawFinalScore();
+        return;
+    }
+
+    columns.forEach(x => x.update());
+    if (gameManager.stopped) {
+        gameManager.drawFinalScore();
+        return;
+    }
 
     // Respawn columns when they are off screen
     if (columns.some(x => x.x <= -40)) {
 
-        // Works out a column gap at a new/random position  
+        // Works out a column gap at a new/random position
+
         var gapHeight = 100;
         var gapPos = Math.random() * 300 + 100;
         var col1Height = gapPos - (gapHeight / 2);
