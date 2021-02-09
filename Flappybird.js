@@ -70,48 +70,55 @@ class Column extends Component {
             gameManager.stopGame();
     }
     respawn(height, y) {
+
+        if (gameManager.score > 20 && gameManager.score < 40) {
+            this.speedX = -6;
+        }
+        else if (gameManager.score >= 40) {
+            this.speedX = Math.random > 0.7 ? -7 : -6;
+        }
+
         this.x += gameManager.width + 30;
         this.height = height;
         this.y = y;
         gameManager.scoreFlag = false;
     }
-
 }
 
-//-------------------------------------------------------------------------
+class GameManager {
 
-var player;
-var columns = [];
-
-var gameManager = {
-
-    canvas: document.getElementById('ctx'),
-    score: 0,
-    scoreFlag: false,
-    stopped: true,
-    startGame: function () {
+    constructor() {
+        this.canvas = document.getElementById('ctx');
+        this.score = 0;
+        this.scoreFlag = false;
+        this.stopped = true;
+    }
+    startGame() {
         this.ctx = this.canvas.getContext('2d');
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.interval = setInterval(update, 1000 / 60);
         this.score = 0;
         this.stopped = false;
-    },
-    stopGame: function () {
+        player = new Player(30, 240, 20, 20, 'white');
+        columns.push(new Column(500, 0, 20, 200, 'red', -5));
+        columns.push(new Column(500, 300, 20, 250, 'red', -5));
+    }
+    stopGame() {
         clearInterval(this.interval);
         columns = [];
         player = null;
         this.drawFinalScore();
         this.stopped = true;
-    },
-    clear: function () {
+    }
+    clear() {
         this.ctx.clearRect(0, 0, this.width, this.height);
-    },
-    drawScore: function () {
+    }
+    drawScore() {
         this.ctx.font = "30px Arial";
         this.ctx.fillText(this.score, 430, 50);
-    },
-    drawFinalScore: function () {
+    }
+    drawFinalScore() {
         this.clear();
         this.ctx.font = "100px Arial";
         if (this.score < 10)
@@ -120,8 +127,8 @@ var gameManager = {
             this.ctx.fillText(this.score, 210, 270);
         else
             this.ctx.fillText(this.score, 190, 270);
-    },
-    updateScore: function (player, column) {
+    }
+    updateScore(player, column) {
         if (player.x > column.x + column.width && !this.scoreFlag) {
             this.scoreFlag = true;
             this.score++;
@@ -129,11 +136,14 @@ var gameManager = {
     }
 }
 
+//-------------------------------------------------------------------------
+
+var player;
+var columns = [];
+var gameManager = new GameManager();
+
 function startGame() {
     gameManager.startGame();
-    player = new Player(30, 240, 20, 20, 'white');
-    columns.push(new Column(500, 0, 20, 200,'red', -5));
-    columns.push(new Column(500, 300, 20, 250,'red', -5));
 }
 
 function update() {
@@ -153,7 +163,7 @@ function update() {
     if (gameManager.stopped)
         return;
 
-    gameManager.updateScore(player, columns[0]);  
+    gameManager.updateScore(player, columns[0]);
 
     // Respawn columns when they are off screen
     if (columns.some(x => x.x <= -20)) {
@@ -184,7 +194,7 @@ document.addEventListener('keydown', event => {
 document.addEventListener('keyup', event => {
     if (event.code === 'Space') {
         if (gameManager.stopped)
-            startGame();
+            gameManager.startGame();
         else
             player.accelerate(0.15);
     }
