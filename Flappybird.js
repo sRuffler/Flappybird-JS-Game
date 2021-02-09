@@ -28,6 +28,8 @@ class Player extends Component {
         this.gravitySpeed = 0;
         this.speedX = 0;
         this.speedY = 0;
+        this.img = new Image(20, 20);
+        this.img.src = "bird.png";
     }
     update() {
         this.#setGravitySpeed();
@@ -40,6 +42,9 @@ class Player extends Component {
     }
     accelerate(value) {
         this.gravity = value;
+    }
+    drawImage() {
+        gameManager.ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
     }
     #setGravitySpeed() {
         this.gravitySpeed += this.gravity;
@@ -56,9 +61,11 @@ class Player extends Component {
 
 class Column extends Component {
 
-    constructor(x, y, width, height, color, speedX) {
+    constructor(x, y, width, height, color, speedX, imgSrc) {
         super(x, y, width, height, color);
         this.speedX = speedX;
+        this.img = new Image();
+        this.img.src = imgSrc;
     }
     update() {
         if (gameManager.stopped)
@@ -69,16 +76,18 @@ class Column extends Component {
         if (this.hasCollidedWithRect(player))
             gameManager.stopGame();
     }
+    drawColumn() {
+        gameManager.ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    }
     respawn(height, y) {
-
-        if (gameManager.score > 20 && gameManager.score < 40) {
+        if (gameManager.score > 20 && gameManager.score) {
             this.speedX = -6;
         }
         else if (gameManager.score >= 40) {
             this.speedX = Math.random > 0.7 ? -7 : -6;
         }
 
-        this.x += gameManager.width + 30;
+        this.x += gameManager.width + 50;
         this.height = height;
         this.y = y;
         gameManager.scoreFlag = false;
@@ -92,6 +101,15 @@ class GameManager {
         this.score = 0;
         this.scoreFlag = false;
         this.stopped = true;
+        this.img = new Image();
+        this.img.src = "background.png";
+        this.imgX = 0;
+        this.imgY = 0;
+
+        this.img2 = new Image();
+        this.img2.src = "background.png";
+        this.img2X = this.canvas.width;
+        this.img2Y = 0;
     }
     startGame() {
         this.ctx = this.canvas.getContext('2d');
@@ -100,9 +118,9 @@ class GameManager {
         this.interval = setInterval(update, 1000 / 60);
         this.score = 0;
         this.stopped = false;
-        player = new Player(30, 240, 20, 20, 'white');
-        columns.push(new Column(500, 0, 20, 200, 'red', -5));
-        columns.push(new Column(500, 300, 20, 250, 'red', -5));
+        player = new Player(30, 240, 35, 35, 'white');
+        columns.push(new Column(500, 0, 50, 200, 'red', -5, "pipeTop.png"));
+        columns.push(new Column(500, 300, 50, 250, 'red', -5, "pipeBottom.png"));
     }
     stopGame() {
         clearInterval(this.interval);
@@ -128,6 +146,19 @@ class GameManager {
         else
             this.ctx.fillText(this.score, 190, 270);
     }
+    drawBackground() {
+        this.ctx.drawImage(this.img, this.imgX, this.imgY, this.canvas.width, this.canvas.height + 200);
+        this.ctx.drawImage(this.img2, this.img2X, this.img2Y, this.canvas.width, this.canvas.height + 200);
+    }
+    updateBackground() {
+        if (this.imgX <= this.canvas.width * -1)
+            this.imgX *= -1;
+        else if (this.img2X <= this.canvas.width * -1)
+            this.img2X *= -1;
+
+        this.imgX += -1;
+        this.img2X += -1;
+    }
     updateScore(player, column) {
         if (player.x > column.x + column.width && !this.scoreFlag) {
             this.scoreFlag = true;
@@ -149,12 +180,15 @@ function startGame() {
 function update() {
     gameManager.clear();
 
-    // Draw Components and Score
-    player.draw();
-    columns.forEach(x => x.draw());
+    // Draw Components and Score 
+
+    gameManager.drawBackground();
+    player.drawImage();
+    columns.forEach(x => x.drawColumn());
     gameManager.drawScore();
 
     // Update Component Positions and Score
+
     player.update();
     if (gameManager.stopped)
         return;
@@ -164,9 +198,10 @@ function update() {
         return;
 
     gameManager.updateScore(player, columns[0]);
+    gameManager.updateBackground();
 
     // Respawn columns when they are off screen
-    if (columns.some(x => x.x <= -20)) {
+    if (columns.some(x => x.x <= -40)) {
 
         // Works out a column gap at a new/random position  
         var gapHeight = 100;
