@@ -46,6 +46,7 @@ class Player extends Component {
         this.x += this.speedX;
 
         if (this.y < 0 || this.y > gameManager.height - this.height) {
+            gameManager.audioChannels[2].play();
             gameManager.stopGame();
         }
     }
@@ -82,8 +83,11 @@ class Column extends Component {
 
         this.x += this.speedX;
 
-        if (this.hasCollidedWithRect(player))
+        if (this.hasCollidedWithRect(player)) {
+            gameManager.audioChannels[2].play();
             gameManager.stopGame();
+        }
+
     }
     drawColumn() {
         gameManager.ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
@@ -119,7 +123,8 @@ class GameManager {
         this.img2.src = "background.png";
         this.img2X = this.canvas.width;
         this.img2Y = 0;
-        this.frameCount = 0;
+        this.frameCount = 0;        
+        this.audioChannels = [];         
     }
     startGame() {
         this.ctx = this.canvas.getContext('2d');
@@ -131,6 +136,7 @@ class GameManager {
         player = new Player(30, 240, 35, 35, 'white');
         columns.push(new Column(500, 0, 50, 200, 'red', -5, "pipeTop.png"));
         columns.push(new Column(500, 300, 50, 250, 'red', -5, "pipeBottom.png"));
+        this.loadAudio();
     }
     stopGame() {
         clearInterval(this.interval);
@@ -173,6 +179,19 @@ class GameManager {
             this.scoreFlag = true;
             this.score++;
         }
+    }
+    loadAudio() {
+        var audio = new Audio('Jump.wav');
+        var deathAudio = new Audio('Death.wav');
+
+        for (var i = 0; i < 2; i++) {
+
+            this.audioChannels.push(audio);
+            this.audioChannels[i].volume = 0.3;
+        }
+
+        this.audioChannels.push(deathAudio);
+        this.audioChannels.forEach(x => x.load());   
     }
 }
 
@@ -238,13 +257,22 @@ document.addEventListener('keydown', event => {
 
     if (event.code === 'Space' && !gameManager.stopped) {
         player.accelerate(-5);
+         
+        for (var i = 0; i < 2; i++) {
+            if (gameManager.audioChannels[i].paused) {
+                gameManager.audioChannels[i].play();
+                console.log("audio channel:" + i);
+                break;
+            }
+        }
     }
 });
 
 document.addEventListener('keyup', event => {
     if (event.code === 'Space') {
-        if (gameManager.stopped)
+        if (gameManager.stopped) {
             gameManager.startGame();
+        }     
         else
             player.accelerate(0.15);
     }
