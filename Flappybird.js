@@ -28,10 +28,19 @@ class Player extends Component {
         this.gravitySpeed = 0;
         this.speedX = 0;
         this.speedY = 0;
-        this.img = new Image(20, 20);
-        this.img.src = "bird.png";
+        this.sprites = [];
+        for (var i = 0; i < 4; i++) {
+            this.sprites.push(new Image());
+            this.sprites[i].src = "frame-" + i + ".png";
+        }
+        this.currentSprite = 0;
     }
     update() {
+        if (gameManager.frameCount % 7 == 0)
+            this.currentSprite++;
+        if (this.currentSprite >= 4)
+            this.currentSprite = 0;
+
         this.#setGravitySpeed();
         this.y += this.speedY + this.gravitySpeed;
         this.x += this.speedX;
@@ -44,7 +53,7 @@ class Player extends Component {
         this.gravity = value;
     }
     drawImage() {
-        gameManager.ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+        gameManager.ctx.drawImage(this.sprites[this.currentSprite], this.x, this.y, this.width, this.height);
     }
     #setGravitySpeed() {
         this.gravitySpeed += this.gravity;
@@ -55,7 +64,7 @@ class Player extends Component {
         if (this.gravitySpeed >= 5)
             this.gravitySpeed = 5;
         else if (this.gravitySpeed <= -5)
-            this.gravitySpeed = -5;
+            this.gravitySpeed = -4;
     }
 }
 
@@ -110,12 +119,13 @@ class GameManager {
         this.img2.src = "background.png";
         this.img2X = this.canvas.width;
         this.img2Y = 0;
+        this.frameCount = 0;
     }
     startGame() {
         this.ctx = this.canvas.getContext('2d');
         this.width = this.canvas.width;
         this.height = this.canvas.height;
-        this.interval = setInterval(update, 1000 / 60);
+        this.interval = setInterval(update, 1000/60);
         this.score = 0;
         this.stopped = false;
         player = new Player(30, 240, 35, 35, 'white');
@@ -142,12 +152,8 @@ class GameManager {
         this.drawBackground();
         this.ctx.font = "100px Arial";
         this.ctx.fillStyle = 'red';
-        if (this.score < 10)
-            this.ctx.fillText(this.score, 230, 270);
-        else if (this.score > 9 && this.score < 100)
-            this.ctx.fillText(this.score, 210, 270);
-        else
-            this.ctx.fillText(this.score, 190, 270);
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(this.score, this.width/2, this.height/2);
     }
     drawBackground() {
         this.ctx.drawImage(this.img, this.imgX, this.imgY, this.canvas.width, this.canvas.height + 200);
@@ -182,6 +188,7 @@ function startGame() {
 
 function update() {
     gameManager.clear();
+    gameManager.frameCount++;
 
     // Draw Components and Score 
 
