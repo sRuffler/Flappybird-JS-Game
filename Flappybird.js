@@ -281,8 +281,8 @@ function update() {
 
         // Works out a column gap at a new/random position
 
-        var gapHeight = 150;
-        var gapPos = Math.random() * 250 + 100;
+        var gapHeight = 100;
+        var gapPos = Math.random() * 300 + 100;
         var col1Height = gapPos - (gapHeight / 2);
         var col2Height = 500;
 
