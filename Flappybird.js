@@ -100,11 +100,52 @@ class Column extends Component {
             this.speedX = Math.random > 0.7 ? -7 : -6;
         }
 
-        this.x += gameManager.width + 50;
+        this.x = gameManager.width + 50;
         this.height = height;
         this.y = y;
         gameManager.scoreFlag = false;
     }
+}
+
+class Collectable extends Component {
+    constructor(x, y, width, height, color, audioSrc) {
+        super(x, y, width, height, color);
+        this.audioSrc = audioSrc;
+        this.currentSpriteIndex = 0;
+        this.sprites = [];
+        this.hidden = false;
+
+        for (var i = 1; i < 7; i++) {
+            this.sprites.push(new Image());
+            this.sprites[i - 1].src = "Images/Coin" + i + ".png";
+        }
+    }
+    update() {
+        this.x -= 5;
+        if (this.x <= -40 && columns.some(x => x.x <= -40)) {
+            gameManager.collectables.splice(0, 1);
+            var randX = Math.random() * 200 + 700;
+            var randY = Math.random() * 300 + 100;
+            gameManager.collectables.push(new Collectable(randX, randY, 30, 30, null));
+        }
+            
+        if (gameManager.frameCount % 10 == 0)
+            this.currentSpriteIndex++;
+        if (this.currentSpriteIndex >= this.sprites.length)
+            this.currentSpriteIndex = 0;
+
+        if (this.hasCollidedWithRect(player) && !this.hidden) {
+            gameManager.audioChannels[3].play();
+            this.hidden = true;
+            gameManager.score++;
+        }
+
+    }
+    drawImage() {
+        if (!this.hidden)
+            gameManager.ctx.drawImage(this.sprites[this.currentSpriteIndex], this.x, this.y, this.width, this.height);
+    }
+
 }
 
 class GameManager {
@@ -116,6 +157,7 @@ class GameManager {
         this.stopped = true;
         this.img = new Image();
         this.img.src = "background.png";
+        this.img.style.filter = "grayscale(100%)";
         this.imgX = 0;
         this.imgY = 0;
 
@@ -124,7 +166,8 @@ class GameManager {
         this.img2X = this.canvas.width;
         this.img2Y = 0;
         this.frameCount = 0;        
-        this.audioChannels = [];         
+        this.audioChannels = [];
+        this.loadAudio();
     }
     startGame() {
         this.ctx = this.canvas.getContext('2d');
@@ -136,7 +179,8 @@ class GameManager {
         player = new Player(30, 240, 35, 35, 'white');
         columns.push(new Column(500, 0, 50, 200, 'red', -5, "pipeTop.png"));
         columns.push(new Column(500, 300, 50, 250, 'red', -5, "pipeBottom.png"));
-        this.loadAudio();
+        this.collectables = [];
+        this.collectables.push(new Collectable(300,200, 30,30, null));
     }
     stopGame() {
         clearInterval(this.interval);
@@ -162,6 +206,7 @@ class GameManager {
         this.ctx.fillText(this.score, this.width/2, this.height/2);
     }
     drawBackground() {
+        //his.canvas.filter.greyscale("0%");
         this.ctx.drawImage(this.img, this.imgX, this.imgY, this.canvas.width, this.canvas.height + 200);
         this.ctx.drawImage(this.img2, this.img2X, this.img2Y, this.canvas.width, this.canvas.height + 200);
     }
@@ -183,6 +228,7 @@ class GameManager {
     loadAudio() {
         var audio = new Audio('Jump.wav');
         var deathAudio = new Audio('Death.wav');
+        var coinAudio = new Audio('Audio/CoinCollect.wav');
 
         for (var i = 0; i < 2; i++) {
 
@@ -191,6 +237,8 @@ class GameManager {
         }
 
         this.audioChannels.push(deathAudio);
+        this.audioChannels.push(coinAudio);
+        this.audioChannels[3].volume = 0.3;
         this.audioChannels.forEach(x => x.load());   
     }
 }
@@ -209,13 +257,6 @@ function update() {
     gameManager.clear();
     gameManager.frameCount++;
 
-    // Draw Components and Score 
-
-    gameManager.drawBackground();
-    player.drawImage();
-    columns.forEach(x => x.drawColumn());
-    gameManager.drawScore();
-
     // Update Component Positions and Score
 
     gameManager.updateScore(player, columns[0]);
@@ -233,19 +274,29 @@ function update() {
         return;
     }
 
+    gameManager.collectables.forEach(x => x.update());
+
     // Respawn columns when they are off screen
     if (columns.some(x => x.x <= -40)) {
 
         // Works out a column gap at a new/random position
 
-        var gapHeight = 100;
-        var gapPos = Math.random() * 300 + 100;
+        var gapHeight = 150;
+        var gapPos = Math.random() * 250 + 100;
         var col1Height = gapPos - (gapHeight / 2);
         var col2Height = 500;
 
         columns[0].respawn(col1Height, 0);
         columns[1].respawn(col2Height, gapPos + (gapHeight / 2));
     }
+
+
+    // Draw Components and Score 
+    gameManager.drawBackground();
+    player.drawImage();
+    columns.forEach(x => x.drawColumn());
+    gameManager.drawScore();
+    gameManager.collectables.forEach(x => x.drawImage());
 }
 
 document.addEventListener('keydown', event => {
